@@ -4,6 +4,9 @@ photoStockAPI=> 5012
 IdentityAPI=> 5010
 BasketAPI=>5013
 DiscountAPI=>5014
+OrderAPI=>5015
+FakePaymentAPI=>5016
+Gateway=>5000
 portainer 9443 admin password123.
 sqlserver 1443 sa password123.
 postgresql
