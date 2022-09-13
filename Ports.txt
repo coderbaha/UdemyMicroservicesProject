@@ -7,6 +7,7 @@ DiscountAPI=>5014
 OrderAPI=>5015
 FakePaymentAPI=>5016
 Gateway=>5000
+WebUI=>5020
 portainer 9443 admin password123.
 sqlserver 1443 sa password123.
 postgresql

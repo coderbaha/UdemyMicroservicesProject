@@ -1,25 +1,21 @@
 using FreeCourse.Service.Basket.Services.Concrete;
 using FreeCourse.Service.Basket.Services.Interfaces;
+using FreeCourse.Services.Basket.Consumers;
 using FreeCourse.Services.Basket.Settings;
 using FreeCourse.Shared.Services.Concrete;
 using FreeCourse.Shared.Services.Interfaces;
+using MassTransit;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Authorization;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Models;
-using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace FreeCourse.Service.Basket
 {
@@ -35,6 +31,26 @@ namespace FreeCourse.Service.Basket
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
+            services.AddMassTransit(x =>
+            {
+                x.AddConsumer<CourseNameChangedEventConsumer>();
+                // Default Port : 5672
+                x.UsingRabbitMq((context, cfg) =>
+                {
+                    cfg.Host(Configuration["RabbitMQUrl"], "/", host =>
+                    {
+                        host.Username("guest");
+                        host.Password("guest");
+                    });
+
+                    cfg.ReceiveEndpoint("course-name-changed-event-order-service", e =>
+                    {
+                        e.ConfigureConsumer<CourseNameChangedEventConsumer>(context);
+                    });
+                });
+            });
+
+            services.AddMassTransitHostedService();
             var requireAuthorizePolicy = new AuthorizationPolicyBuilder().RequireAuthenticatedUser().Build();
             JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
